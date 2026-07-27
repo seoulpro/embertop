@@ -1,0 +1,598 @@
+/*
+ * The chrome is deliberately neutral and flat: hairline rules, no cards, no
+ * blur, no gradients. Warmth belongs to the fire, so the interface never
+ * competes with it for attention.
+ */
+:root {
+  --bg: #0a0a0b;
+  --fg: #eae8e5;
+  --fg-2: #9b9894;
+  --fg-3: #6e6b67;
+  --fg-4: #4a4744;
+  --rule: rgba(255, 255, 255, 0.1);
+  --rule-soft: rgba(255, 255, 255, 0.055);
+  --ember: #ff7a3c;
+  --crawler: #6fc3cb;
+  --unknown: #9b8ac4;
+  --refused: #d8a03c;
+  --error: #ff5a52;
+
+  --bar: 46px;
+  --gutter: clamp(16px, 2.2vw, 30px);
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--bg);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible {
+  outline: 1px solid var(--fg-2);
+  outline-offset: 2px;
+}
+
+.app {
+  isolation: isolate;
+  position: relative;
+  display: grid;
+  grid-template-rows: var(--bar) minmax(0, 1fr) var(--bar);
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+/* The fire is the page, not a widget on it. Nothing resizes when the overlays
+ * hide, so entering focus mode never disturbs the flame. */
+.fire-canvas {
+  /* Nudged left of centre so the fire sits in the middle of the space the
+   * readout leaves open, rather than half-behind it. */
+  --hearth-x: 0.44;
+  --hearth-y: 0.78;
+
+  pointer-events: none;
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------------------------------------------------------------- bars --- */
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 var(--gutter);
+  transition:
+    opacity 400ms ease,
+    visibility 400ms;
+}
+
+.bar-top {
+  border-bottom: 1px solid var(--rule);
+}
+
+.bar-bottom {
+  justify-content: flex-end;
+  border-top: 1px solid var(--rule);
+}
+
+.identity,
+.status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.wordmark {
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.site {
+  overflow: hidden;
+  padding-left: 14px;
+  border-left: 1px solid var(--rule);
+  color: var(--fg-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  color: var(--fg-3);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--fg-2);
+}
+
+.link i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ember);
+}
+
+.link-connecting i,
+.link-reconnecting i {
+  background: var(--fg-3);
+  animation: blink 1.4s ease-in-out infinite;
+}
+
+.status time {
+  color: var(--fg-3);
+}
+
+/* -------------------------------------------------------------- readout --- */
+
+.stage {
+  position: relative;
+  min-height: 0;
+}
+
+.readout {
+  display: flex;
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  flex-direction: column;
+  width: min(324px, 34vw);
+  padding: 16px var(--gutter);
+  border-left: 1px solid var(--rule);
+  background: linear-gradient(90deg, transparent, rgba(10, 10, 11, 0.72) 22%);
+  transition:
+    opacity 400ms ease,
+    visibility 400ms;
+}
+
+.reading + .reading {
+  margin-top: 12px;
+}
+
+.reading-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.reading-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  color: var(--fg);
+}
+
+.reading-label em {
+  color: var(--fg-4);
+  font-style: normal;
+}
+
+.reading-value {
+  color: var(--fg);
+  font-size: 15px;
+}
+
+.unit {
+  margin-left: 1px;
+  color: var(--fg-4);
+  font-size: 11px;
+}
+
+.gauge {
+  width: 100%;
+  height: 1px;
+  margin-top: 8px;
+  background: var(--rule);
+}
+
+.gauge span {
+  display: block;
+  height: 100%;
+  background: var(--ember);
+  transition: width 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.gauge-ember span {
+  background: #a8471f;
+}
+
+/* ---------------------------------------------------------------- bands --- */
+
+.bands {
+  margin-top: 16px;
+  padding-top: 13px;
+  border-top: 1px solid var(--rule-soft);
+}
+
+.bands-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.bands-head h2 {
+  margin: 0;
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.bands-head span {
+  color: var(--fg-3);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.bands-head em {
+  color: var(--fg-4);
+  font-style: normal;
+}
+
+.band + .band {
+  margin-top: 11px;
+}
+
+/* The caption is the key: same colours, same order as the segments below. */
+.band-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 11px;
+  margin: 0 0 5px;
+  font-size: 11px;
+}
+
+.band-quiet {
+  color: var(--fg-4);
+}
+
+.band-track {
+  display: flex;
+  gap: 1px;
+  overflow: hidden;
+  width: 100%;
+  height: 3px;
+  background: var(--rule);
+}
+
+.band-fill {
+  min-width: 1px;
+  height: 100%;
+  transition: flex-grow 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.band-visitor {
+  background: var(--ember);
+}
+
+.band-text-visitor {
+  color: var(--ember);
+}
+
+.band-crawler {
+  background: var(--crawler);
+}
+
+.band-text-crawler {
+  color: var(--crawler);
+}
+
+.band-unknown {
+  background: var(--unknown);
+}
+
+.band-text-unknown {
+  color: var(--unknown);
+}
+
+/* A healthy minute is almost entirely quiet grey. */
+.band-ok {
+  background: var(--fg-4);
+}
+
+.band-text-ok {
+  color: var(--fg-3);
+}
+
+.band-refused {
+  background: var(--refused);
+}
+
+.band-text-refused {
+  color: var(--refused);
+}
+
+.band-broken {
+  background: var(--error);
+}
+
+.band-text-broken {
+  color: var(--error);
+}
+
+/* ----------------------------------------------------------------- feed --- */
+
+.feed {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: 16px;
+  padding-top: 13px;
+  border-top: 1px solid var(--rule-soft);
+}
+
+.feed-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.feed-head h2 {
+  margin: 0;
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.feed-head p {
+  margin: 0;
+  overflow: hidden;
+  color: var(--fg-4);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feed-empty {
+  margin: 16px 0 0;
+  color: var(--fg-4);
+  font-size: 11px;
+}
+
+.feed-list {
+  flex: 1;
+  min-height: 0;
+  margin: 9px 0 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+.visit {
+  display: grid;
+  grid-template-columns: 5px auto minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: 0 8px;
+  padding: 7px 0;
+  border-top: 1px solid var(--rule-soft);
+  font-size: 11px;
+  animation: arrive 500ms ease both;
+}
+
+.visit-mark {
+  align-self: center;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ember);
+}
+
+.visit-crawler .visit-mark {
+  background: var(--crawler);
+}
+
+.visit-unknown .visit-mark {
+  background: var(--unknown);
+}
+
+.visit-refused .visit-mark {
+  background: var(--refused);
+}
+
+.visit-broken .visit-mark {
+  background: var(--error);
+}
+
+.visit-method {
+  color: var(--fg-3);
+}
+
+.visit-path {
+  overflow: hidden;
+  color: var(--fg-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visit-status,
+.visit time {
+  color: var(--fg-4);
+}
+
+/* --------------------------------------------------------- bottom bar --- */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.action {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--fg-3);
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    background 140ms ease;
+}
+
+/* A hint, not a chrome element: no box, just a quieter shade. */
+.action kbd {
+  color: var(--fg-4);
+  font: inherit;
+  font-size: 10px;
+}
+
+.action:hover:not(:disabled),
+.action[aria-pressed="true"] {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.action:disabled {
+  color: var(--fg-4);
+  cursor: not-allowed;
+}
+
+.action-primary {
+  color: var(--fg-2);
+}
+
+/* ----------------------------------------------------------- focus mode --- */
+
+/* With the readout gone there is nothing to sit beside: recentre the fire. */
+.app.is-focus .fire-canvas {
+  --hearth-x: 0.5;
+}
+
+.app.is-focus .bar-top,
+.app.is-focus .readout {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.app.is-focus .bar-bottom {
+  opacity: 0.16;
+}
+
+.app.is-focus .bar-bottom:hover,
+.app.is-focus .bar-bottom:focus-within {
+  opacity: 1;
+}
+
+/* ----------------------------------------------------------- animation --- */
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------- responsive --- */
+
+@media (max-width: 900px) {
+  /* The readout now occupies the bottom of the stage, so the hearth has to
+   * clear it — including on short, wide windows. */
+  .fire-canvas {
+    --hearth-x: 0.5;
+    --hearth-y: 0.34;
+  }
+
+  .readout {
+    top: auto;
+    width: 100%;
+    max-height: 58%;
+    overflow-y: auto;
+    border-top: 1px solid var(--rule);
+    border-left: 0;
+    background: linear-gradient(180deg, transparent, rgba(10, 10, 11, 0.8) 26%);
+  }
+
+  .readings {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .reading {
+    min-width: 0;
+  }
+
+  .reading + .reading {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  /* At this width the bar can hold the controls or the key, not both. */
+  .site,
+  .action kbd {
+    display: none;
+  }
+
+  .readings {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .action {
+    padding-inline: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

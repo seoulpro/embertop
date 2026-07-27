@@ -1,0 +1,28 @@
+# Dependencies
+/node_modules/
+
+# Build and test output
+/.next/
+/out/
+/dist/
+/coverage/
+/outputs/
+/work/
+
+# Local configuration
+.env*
+!.env.example
+!collector/config.example.env
+
+# Logs and operating-system files
+*.log
+*.pem
+.DS_Store
+
+# TypeScript
+next-env.d.ts
+*.tsbuildinfo
+
+# Local editor state
+/.idea/
+/.vscode/

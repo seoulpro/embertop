@@ -1,0 +1,62 @@
+name: Bug report
+description: Something behaves differently from what the docs describe.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not paste real access logs, IP addresses, tokens, or private
+        endpoint URLs. Use documentation ranges such as `192.0.2.0/24` and
+        redact hostnames.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what you got instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: The exact command or configuration, with secrets removed.
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where
+      options:
+        - embertop watch (terminal)
+        - embertop serve (collector)
+        - Web dashboard
+        - Something else
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Embertop version
+      description: Output of `embertop --version`, or the commit you are on.
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Node.js and OS
+      description: Output of `node --version`, plus your operating system.
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: embertop doctor
+      description: Optional, but it usually explains the problem on its own.
+      render: shell
