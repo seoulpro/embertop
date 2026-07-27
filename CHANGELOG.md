@@ -15,6 +15,8 @@ All notable changes to this project are documented here. The format follows
   terminal, web-tunnel, service-status, journal, and `doctor` checks.
 - Replaced fabricated first-load readings with an explicit waiting state and
   improved muted-text contrast.
+- Made dependency auditing cover recognized development-tool advisories
+  without weakening the runtime gate.
 
 ## [0.3.0] - 2026-07-28
 

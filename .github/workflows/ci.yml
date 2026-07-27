@@ -45,8 +45,8 @@ jobs:
       - name: Type-check
         run: npm run typecheck
 
-      - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
+      - name: Audit dependency policy
+        run: npm run audit:dependencies
 
       - name: Test web and CLI
         run: npm test

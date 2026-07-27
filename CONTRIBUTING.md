@@ -25,7 +25,7 @@ Before opening a pull request:
 npm run typecheck
 npm run lint
 npm test
-npm audit --omit=dev
+npm run audit:dependencies
 ```
 
 `npm test` builds the web app first, so it takes a minute.
