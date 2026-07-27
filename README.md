@@ -10,31 +10,35 @@
 
 ![Embertop — every request leaves a spark](public/og.png)
 
-Embertop turns a server's traffic into a campfire. Every request is a spark,
-CPU lifts the flame, and memory keeps the ember bed glowing. There are no
-charts, no thresholds, and nothing to acknowledge — you just leave it burning
-in a spare terminal and glance over now and then.
+Embertop turns live machine activity into a campfire. CPU raises the flame,
+memory brightens the ember bed, and each new access-log entry becomes a spark.
+There are no charts to study, thresholds to tune, or alerts to acknowledge.
+Leave it running in a spare terminal and let the shape of the fire tell you
+when something changes.
 
-Koreans call sitting and staring into a fire *bulmeong* (불멍). This is that,
-for the machine you are responsible for. The name pairs `ember` with `top`, a
-nod to the Unix monitor you leave running in a spare terminal.
+In Korean, *bulmeong* (불멍) is the quiet pleasure of staring into a fire.
+Embertop brings that feeling to a machine you look after. Its name pairs
+`ember` with `top`, a nod to the terminal monitor.
 
 ```bash
-npx embertop
+git clone https://github.com/seoulpro/embertop.git
+cd embertop
+npm ci
+npm run cli
 ```
 
 ## Reading the fire
 
-Anything reachable from the internet gets more than visitors, so the fire
-distinguishes what is knocking from what the server said back.
+Public-facing servers attract more than human visitors. Embertop separates who
+is making a request from how the server responds.
 
 | Spark | Meaning |
 |---|---|
-| Warm orange, rises | A visitor was served |
-| Cyan | A crawler that named itself — Googlebot, Bingbot, AhrefsBot |
-| Ashy violet | Something that did not identify itself: `curl`, a script, a blank agent |
-| Amber, fizzles at knee height | 4xx. The request never became a page, so it does not feed the flame |
-| Red, big burst | 5xx. Your server broke, not the caller |
+| Warm orange, rises | A browser-like visitor |
+| Cyan | A crawler that identified itself — Googlebot, Bingbot, AhrefsBot |
+| Ashy violet | A non-browser or unidentified client: `curl`, a script, or a blank user agent |
+| Amber, fizzles at knee height | A 4xx response: the server refused or could not find the request |
+| Red, big burst | A 5xx response: the server failed while handling the request |
 
 Under the readings, two one-minute bands give the same information as a shape
 rather than a stream: who is knocking, and what they got. Each band is
@@ -63,31 +67,50 @@ companion for wall displays and existing backoffices.
 
 | | What it is | Where it runs |
 |---|---|---|
-| `embertop watch` | The fire, in your terminal. The default command. | Your laptop, or straight on the box |
+| `embertop watch` | The fire in your terminal; this is the default command. | Your laptop or the server itself |
 | `embertop serve` | A small collector that exposes telemetry over SSE. | The server being watched |
 | Web dashboard | Optional browser view of the same stream. | Behind your backoffice auth |
 
-The CLI's execution path uses only Node.js built-ins. Nothing is installed to
-watch a local machine.
+The CLI execution path uses only Node.js built-ins and starts no background
+service. The package is not yet published to npm. For readability, later
+examples use `embertop` as if it were installed; from a checkout, replace it
+with `npm run cli --`.
 
 ## Watch a local machine
 
 ```bash
-npx embertop
+npm run cli
 ```
 
-CPU, memory, and load average, with no configuration and no elevated
-privileges. Add access logs to turn requests into sparks:
+With no log configured, Embertop shows system activity only. Add one or more
+readable access logs to turn newly appended requests into sparks:
 
 ```bash
-embertop --log /var/log/nginx/access.log
-embertop -l /var/log/nginx/site-a.log -l /var/log/nginx/site-b.log
+npm run cli -- --log /var/log/nginx/access.log
+npm run cli -- -l /var/log/nginx/site-a.log -l /var/log/nginx/site-b.log
 ```
 
 Nginx and JSON formats are detected automatically. Only lines written *after*
 Embertop starts are read, so existing log contents are never replayed.
 
 Keys: `f` focus, `space` or `p` pause, `h` help, `q` quit.
+
+### Platform notes
+
+Embertop requires Node.js 22.13 or newer. Local sampling does not require
+elevated privileges, but each operating system exposes a slightly different
+view of memory and load:
+
+| Platform | Local readings | Notes |
+|---|---|---|
+| Linux | CPU, memory based on `MemAvailable`, one-minute load average | Primary server target; CI and the bundled systemd/Nginx examples run on Linux |
+| macOS | CPU, a `memory_pressure`-derived memory percentage, one-minute load average | Suitable for a local Terminal preview; the memory value is not identical to Activity Monitor's “Memory Used” |
+| Windows | CPU and memory from Node.js system APIs | Node.js reports load average as `0` on Windows; no Windows service template is included |
+
+Access-log tailing works wherever Node.js can read the file. The
+`/var/log/nginx/...` paths in this README and the bundled service files are
+Linux examples, not cross-platform defaults. Current automated tests run on
+Linux; macOS and Windows behaviour should be checked on the target machine.
 
 ## Watch a remote server
 
@@ -113,9 +136,10 @@ ssh -N -L 4318:127.0.0.1:4318 operator@example.com
 embertop --endpoint http://127.0.0.1:4318/stream
 ```
 
-The collector needs no root. Read-only access to the log file is enough — the
-bundled unit file assumes `User=embertop`, `Group=adm`. Binding `serve` to a
-non-loopback address without a token is refused.
+The collector needs no root. Read-only access to the log file is enough. The
+bundled systemd unit is a Linux example and assumes `User=embertop`,
+`Group=adm`; distributions that assign logs to another group need that value
+changed. Binding `serve` to a non-loopback address without a token is refused.
 
 ## Optional: the web dashboard
 
@@ -123,23 +147,26 @@ Worth running when you want a wall display, or a panel inside a backoffice
 several people already sign into. It is a Next.js app that proxies the
 collector, so browsers never see the collector address or its token.
 
-With no upstream configured it reads **the machine it is running on**, using
-the same sampler as the CLI — so a fresh checkout shows real readings
-immediately, with no configuration:
+With no upstream configured it reads **the machine visible to the Node.js
+process**, using the same sampler as the CLI. On a regular host or VM, that is
+the host itself. In a container, the values are whatever the runtime exposes
+and are not guaranteed to match cgroup limits or the physical host. Use a
+collector or `EMBERTOP_METRICS_URL` when you need an explicit metrics source.
+
+A fresh checkout shows real local readings immediately:
 
 ```bash
 npm ci && npm run dev
 ```
 
-Point it at access logs the same way as the CLI, with `EMBERTOP_LOG_PATHS`.
-Embertop has no synthetic mode: every frame it draws is something that
-actually happened.
+Point it at readable access logs with `EMBERTOP_LOG_PATHS`. Embertop has no
+synthetic mode: every frame it draws comes from a live sampler or stream.
 
 ### Running it for real
 
-The build produces a **self-contained directory** — about 22 MB, its own
-`node_modules` included — that runs on plain Node with no install step on the
-server:
+The build produces a **self-contained `.next/standalone` directory**, including
+its runtime `node_modules`. The server needs a compatible Node.js runtime, but
+does not need a separate `npm install`:
 
 ```bash
 npm ci && npm run build
@@ -161,9 +188,9 @@ NODE_ENV=production PORT=3000 HOSTNAME=127.0.0.1 node /opt/embertop/web/server.j
 matters: buffer the stream and the fire appears frozen. There is a matching
 unit for the collector at `collector/embertop.service.example`.
 
-You can build anywhere with the same major Node version: nothing in the output
-is architecture-specific, because the shipped runtime contains no native
-binaries at all.
+The current standalone bundle contains no native binaries. Release builds are
+verified on Linux; build and test on the target operating system when
+deploying elsewhere or after changing the dependency graph.
 
 > [!IMPORTANT]
 > Embertop has no login of its own. Put the web dashboard behind the
