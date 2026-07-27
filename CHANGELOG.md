@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-07-28
+
 ### Changed
 
 - Added a privacy-minimized Nginx source-log example that omits client IPs,
@@ -17,6 +19,8 @@ All notable changes to this project are documented here. The format follows
   improved muted-text contrast.
 - Made dependency auditing cover recognized development-tool advisories
   without weakening the runtime gate.
+- Moved routine dependency version updates into reviewed release work while
+  retaining automated security updates.
 
 ## [0.3.0] - 2026-07-28
 
