@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-07-28
+
+### Fixed
+
+- Updated the English and Korean installation instructions now that the npm
+  package is available.
+
 ## [0.3.1] - 2026-07-28
 
 ### Changed

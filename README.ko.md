@@ -3,6 +3,7 @@
 **서버를 운영하는 사람을 위한 불멍.**
 
 [![CI](https://github.com/seoulpro/embertop/actions/workflows/ci.yml/badge.svg)](https://github.com/seoulpro/embertop/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/embertop.svg)](https://www.npmjs.com/package/embertop)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A522.13-brightgreen.svg)](package.json)
 
@@ -19,10 +20,8 @@ Embertop은 머신의 실시간 움직임을 모닥불로 바꿉니다. CPU 사�
 터미널에 오래 켜 두는 서버 불멍이라는 뜻입니다.
 
 ```bash
-git clone https://github.com/seoulpro/embertop.git
-cd embertop
-npm ci
-npm run cli
+npm install --global embertop
+embertop
 ```
 
 ## 불 읽는 법
@@ -69,22 +68,22 @@ Embertop은 CLI가 기본입니다. 터미널 UI가 제품 자체이고, 웹 대
 | 웹 대시보드 | 같은 스트림의 브라우저 화면 | 백오피스 인증 뒤 |
 
 CLI 실행 경로는 Node.js 내장 모듈만 사용하며 백그라운드 서비스를 띄우지
-않습니다. 아직 npm에는 게시되지 않았습니다. 이후 예제에서는 읽기 쉽게
-설치된 경우의 `embertop` 명령을 사용하며, 체크아웃에서 실행할 때는 이를
-`npm run cli --`로 바꾸면 됩니다.
+않습니다. npm 패키지를 전역 설치하면 이후 예제의 `embertop` 명령을 그대로
+사용할 수 있습니다. 소스 체크아웃에서는 먼저 `npm ci`를 실행하고
+`embertop` 대신 `npm run cli --`를 사용하십시오.
 
 ## 로컬 머신 보기
 
 ```bash
-npm run cli
+embertop
 ```
 
 로그를 지정하지 않으면 시스템 활동만 표시합니다. 읽을 수 있는 접근 로그를
 하나 이상 추가하면 새로 기록되는 요청이 불씨가 됩니다.
 
 ```bash
-npm run cli -- --log /var/log/nginx/access.log
-npm run cli -- -l /var/log/nginx/site-a.log -l /var/log/nginx/site-b.log
+embertop --log /var/log/nginx/access.log
+embertop -l /var/log/nginx/site-a.log -l /var/log/nginx/site-b.log
 ```
 
 Nginx와 JSON 형식은 자동으로 판별합니다. Embertop이 시작한 *이후*에 기록된
