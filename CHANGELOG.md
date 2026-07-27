@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-28
+
 ### Added
 
 - A deployment path built on the standalone output: a systemd unit
@@ -56,11 +58,11 @@ All notable changes to this project are documented here. The format follows
 - Tightened the readout: the crawler percentage was saying what the band
   already shows, and the request totals moved onto the band heading. The
   request log now fills the height this frees rather than ending in dead space.
-- Rebuilt the fire renderer: split logs with visible end grain, a flame column
-  coloured by height rather than by particle age, a coal bed that spills in
-  front of the stack, and smoke that catches firelight instead of glowing.
-  Particles are blitted from a baked sprite cache rather than allocating a
-  gradient per particle per frame.
+- Rebuilt the fire renderer around a proportional hearth, near-black charred
+  fuel bands, a flame column coloured by height rather than by particle age,
+  an ember bed that spills in front of the fuel, and smoke that catches
+  firelight instead of glowing. Particles are blitted from a baked sprite cache
+  rather than allocating a gradient per particle per frame.
 - The web canvas is now full-bleed, so the fire is the page instead of a widget
   on it, and "just the fire" no longer resizes the canvas mid-flame.
 - Redesigned the web interface around flat hairline surfaces and a single
