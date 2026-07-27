@@ -56,16 +56,6 @@ interface Smoke {
   spin: number;
 }
 
-interface Log {
-  offset: number;
-  lift: number;
-  length: number;
-  radius: number;
-  angle: number;
-  tone: number;
-  grain: number[];
-}
-
 interface Coal {
   offset: number;
   depth: number;
@@ -205,36 +195,19 @@ export function FireCanvas({
       scale: 0.55 + random() * 0.85,
     }));
 
-    // Three logs leaning into each other, back to front.
-    const logs: Log[] = [
-      {
-        offset: -0.06,
-        lift: -0.055,
-        length: 1.02,
-        radius: 0.1,
-        angle: -0.13,
-        tone: 0.82,
-        grain: [0.24, 0.5, 0.71],
-      },
-      {
-        offset: 0.09,
-        lift: 0.01,
-        length: 0.94,
-        radius: 0.112,
-        angle: 0.16,
-        tone: 1,
-        grain: [0.3, 0.58],
-      },
-      {
-        offset: -0.13,
-        lift: 0.07,
-        length: 0.8,
-        radius: 0.088,
-        angle: -0.05,
-        tone: 0.9,
-        grain: [0.36, 0.66],
-      },
-    ];
+    /**
+     * Charred bands lying in the coals. Deliberately not illustrated: no grain,
+     * no bark, no outline. They are drawn in near-black *under* the ember glow
+     * so they read as dark gaps in the light, which is how burnt wood actually
+     * looks at night.
+     */
+    const fuel = Array.from({ length: 4 }, () => ({
+      offset: (random() - 0.5) * 0.85,
+      lift: random(),
+      length: 0.6 + random() * 0.55,
+      thickness: 0.055 + random() * 0.03,
+      angle: (random() - 0.5) * 0.36,
+    }));
 
     const resize = () => {
       // clientWidth/clientHeight ignore CSS transforms, so a scaled stage does
@@ -401,127 +374,59 @@ export function FireCanvas({
       context.restore();
     };
 
+    /**
+     * No drawn firewood. Logs with bark and end grain are the one literal
+     * object in an otherwise flat, typographic interface, and next to it they
+     * read as clip art. What is left is what a fire actually looks like once
+     * it is going: a dark mass with heat pooling inside it. The mass is a
+     * gradient rather than modelled objects, so nothing repeats.
+     */
     const drawEmberBed = (model: ReturnType<typeof fireModel>, flicker: number) => {
+      const bedY = hearthY + bedSpread * 0.12;
+
+      // Pure light, no drawn objects. Painting an opaque dark mass over the
+      // ambient glow only greys it out; a real bed of coals is legible because
+      // of the heat coming out of it, not because of its outline.
+      context.save();
+      context.fillStyle = "#08070a";
+      for (const bar of fuel) {
+        const width = bar.length * bedSpread;
+        const height = bar.thickness * bedSpread;
+        context.save();
+        context.translate(
+          hearthX + bar.offset * bedSpread * 0.46,
+          bedY + (bar.lift - 0.5) * bedSpread * 0.15,
+        );
+        context.rotate(bar.angle);
+        context.beginPath();
+        context.roundRect(-width / 2, -height / 2, width, height, height / 2);
+        context.fill();
+        context.restore();
+      }
+      context.restore();
+
       context.save();
       context.globalCompositeOperation = "lighter";
-
-      const liveCoals = Math.round(8 + model.embers * (coals.length - 8));
+      const liveCoals = Math.round(12 + model.embers * (coals.length - 12));
       for (let index = 0; index < liveCoals; index += 1) {
         const coal = coals[index];
-        const cx = hearthX + coal.offset * bedSpread * 0.78;
-        // The bed spills forward of the stack so the coals stay visible
-        // instead of being buried under the logs.
-        const cy = hearthY + (0.1 + coal.depth * 0.22) * bedSpread;
+        const spread = Math.abs(coal.offset);
+        const cx = hearthX + coal.offset * bedSpread * 0.58;
+        const cy = bedY + (coal.depth - 0.5) * bedSpread * 0.13;
         const breath = 0.5 + 0.5 * Math.sin(flicker * coal.speed + coal.phase);
-        const radius = (0.04 + model.embers * 0.062) * bedSpread * coal.scale;
-        const alpha = (0.2 + model.embers * 0.46) * (0.45 + breath * 0.55);
-        const lightness = 52 + breath * 22 + model.embers * 10;
-        context.globalAlpha = alpha;
+        // Coals nearer the middle sit deeper in the fire, so they run hotter.
+        const heat = (1 - spread * 0.34) * (0.4 + breath * 0.6);
+        const radius = (0.06 + model.embers * 0.075) * bedSpread * coal.scale;
+        context.globalAlpha = (0.2 + model.embers * 0.55) * heat;
         context.drawImage(
-          spriteFor(19 + model.embers * 9, lightness),
-          cx - radius * 1.5,
-          cy - radius * 0.95,
-          radius * 3,
-          radius * 1.9,
+          spriteFor(16 + model.embers * 12, 46 + heat * 34),
+          cx - radius * 1.8,
+          cy - radius * 0.8,
+          radius * 3.6,
+          radius * 1.6,
         );
       }
       context.globalAlpha = 1;
-      context.restore();
-    };
-
-    /**
-     * A split log: dark charred crown, glowing underside where it meets the
-     * coals, visible end grain, and burn cracks that open up as it heats.
-     */
-    const drawLog = (log: Log, model: ReturnType<typeof fireModel>) => {
-      const length = log.length * bedSpread * 1.5;
-      const radius = log.radius * bedSpread;
-      const x = hearthX + log.offset * bedSpread;
-      const y = hearthY + log.lift * bedSpread + radius * 0.35;
-
-      context.save();
-      context.translate(x, y);
-      context.rotate(log.angle);
-
-      const half = length / 2;
-      const body = context.createLinearGradient(0, -radius, 0, radius);
-      body.addColorStop(0, `rgba(${58 * log.tone}, ${43 * log.tone}, ${35 * log.tone}, 1)`);
-      body.addColorStop(0.34, `rgba(${38 * log.tone}, ${26 * log.tone}, ${21 * log.tone}, 1)`);
-      body.addColorStop(0.74, `rgba(${30 * log.tone}, ${18 * log.tone}, ${14 * log.tone}, 1)`);
-      body.addColorStop(1, `rgba(${86 * log.tone}, ${34 * log.tone}, ${14 * log.tone}, 1)`);
-
-      context.beginPath();
-      context.roundRect(-half, -radius, length, radius * 2, radius * 0.9);
-      context.fillStyle = body;
-      context.fill();
-
-      // Bark grain running the length of the log.
-      context.save();
-      context.clip();
-      context.lineWidth = Math.max(1, radius * 0.09);
-      for (const grain of log.grain) {
-        const gy = -radius + radius * 2 * grain;
-        context.strokeStyle = `rgba(12, 7, 5, ${0.4 - grain * 0.12})`;
-        context.beginPath();
-        context.moveTo(-half * 0.94, gy);
-        context.bezierCurveTo(
-          -half * 0.3,
-          gy - radius * 0.16,
-          half * 0.3,
-          gy + radius * 0.16,
-          half * 0.94,
-          gy,
-        );
-        context.stroke();
-      }
-
-      // Burn cracks glowing along the hot underside.
-      const crackGlow = 0.25 + model.flame * 0.6;
-      context.lineWidth = Math.max(1, radius * 0.11);
-      context.strokeStyle = `rgba(255, 132, 48, ${crackGlow * 0.55})`;
-      for (let index = 0; index < 4; index += 1) {
-        const cx = -half * 0.6 + (length * 0.3 * index) / 3;
-        context.beginPath();
-        context.moveTo(cx, radius * 0.42);
-        context.lineTo(cx + radius * 0.34, radius * 0.9);
-        context.stroke();
-      }
-      context.restore();
-
-      // Rim of firelight caught along the lower edge only.
-      context.save();
-      context.beginPath();
-      context.rect(-half, radius * 0.1, length, radius);
-      context.clip();
-      context.beginPath();
-      context.roundRect(-half, -radius, length, radius * 2, radius * 0.9);
-      context.strokeStyle = `rgba(255, 132, 58, ${0.1 + model.embers * 0.14})`;
-      context.lineWidth = Math.max(1, radius * 0.1);
-      context.stroke();
-      context.restore();
-
-      // End grain: concentric rings on the cut face.
-      for (const end of [-1, 1]) {
-        const ex = end * half;
-        context.save();
-        context.translate(ex, 0);
-        const face = context.createLinearGradient(0, -radius, 0, radius);
-        face.addColorStop(0, `rgba(${74 * log.tone}, ${56 * log.tone}, ${44 * log.tone}, 1)`);
-        face.addColorStop(1, `rgba(${44 * log.tone}, ${28 * log.tone}, ${20 * log.tone}, 1)`);
-        context.fillStyle = face;
-        context.beginPath();
-        context.ellipse(0, 0, radius * 0.3, radius * 0.96, 0, 0, Math.PI * 2);
-        context.fill();
-        context.strokeStyle = "rgba(16, 10, 7, 0.45)";
-        context.lineWidth = Math.max(0.6, radius * 0.05);
-        for (const ring of [0.66, 0.36]) {
-          context.beginPath();
-          context.ellipse(0, 0, radius * 0.3 * ring, radius * 0.96 * ring, 0, 0, Math.PI * 2);
-          context.stroke();
-        }
-        context.restore();
-      }
-
       context.restore();
     };
 
@@ -676,9 +581,6 @@ export function FireCanvas({
       context.clearRect(0, 0, width, height);
       drawRoomLight(model, flicker);
       drawSmoke(flicker);
-      // Logs first, then the coal bed spilling out in front of them, so the
-      // stack reads as sitting *in* the fire rather than on top of a decal.
-      for (const log of logs) drawLog(log, model);
       drawEmberBed(model, flicker);
       drawFlames(model);
       drawSparks();

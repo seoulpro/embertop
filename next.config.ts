@@ -5,6 +5,9 @@ const basePath = process.env.EMBERTOP_BASE_PATH?.trim() || "";
 const nextConfig: NextConfig = {
   output: "standalone",
   basePath,
+  // Keep the development indicator from covering the fireplace during local
+  // previews. Production builds do not render it regardless of this setting.
+  devIndicators: false,
   // Nothing here goes through next/image, and leaving the optimizer enabled
   // traces sharp — and with it LGPL-3.0 libvips — into the standalone output
   // and the container image. Turning it off keeps the shipped artifact free
