@@ -30,6 +30,11 @@ Embertop treats telemetry as sensitive operational data.
 - Terminal mode uses the same redaction path as the collector.
 - Tokens passed with `--token` may be visible in operating-system process
   listings. Prefer `EMBERTOP_TOKEN` or `EMBERTOP_COLLECTOR_TOKEN`.
+- Redaction applies to the event Embertop emits, not to an existing Nginx
+  source log. A combined log can retain client IPs, referrers, and query strings
+  before Embertop reads it. `EMBERTOP_INCLUDE_PATHS=false` and `--hide-paths`
+  change emitted data only. Prefer a privacy-minimized source log, restrict
+  access to it, and keep retention short.
 
 Embertop does not implement user authentication. Deploy it behind the
 authentication and authorization already protecting your backoffice. A public

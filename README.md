@@ -121,13 +121,14 @@ credentials — SSH is already the authentication.
 **On the server**, as an unprivileged user with read access to the log:
 
 ```bash
-embertop serve --host 127.0.0.1 --site example.com --log /var/log/nginx/access.log
+embertop serve --host 127.0.0.1 --site example.com --log /var/log/nginx/embertop-access.log
 ```
 
 **On your machine**, open the tunnel:
 
 ```bash
-ssh -N -L 4318:127.0.0.1:4318 operator@example.com
+ssh -N -o ExitOnForwardFailure=yes \
+  -L 127.0.0.1:4318:127.0.0.1:4318 operator@example.com
 ```
 
 **Then, in another terminal**, sit down in front of the fire:
@@ -135,6 +136,10 @@ ssh -N -L 4318:127.0.0.1:4318 operator@example.com
 ```bash
 embertop --endpoint http://127.0.0.1:4318/stream
 ```
+
+The explicit local bind keeps the forwarded port on loopback even if the SSH
+client is configured otherwise. `ExitOnForwardFailure=yes` exits immediately
+when the tunnel cannot be established.
 
 The collector needs no root. Read-only access to the log file is enough. The
 bundled systemd unit is a Linux example and assumes `User=embertop`,
@@ -195,8 +200,8 @@ deploying elsewhere or after changing the dependency graph.
 > [!IMPORTANT]
 > Embertop has no login of its own. Put the web dashboard behind the
 > authentication that already protects your backoffice. Request rates and
-> traffic patterns are operational information even when every visitor is
-> anonymous.
+> traffic patterns are operational information even after visitor identifiers
+> are removed.
 
 See [the integration guide](docs/INTEGRATION.md) for reverse-proxy layouts,
 subpath deployment, and reusing an existing metrics API.
@@ -215,8 +220,8 @@ stream reachability, collector bind safety — without starting the UI.
 
 ## Privacy
 
-Traffic data is operational data, so the redaction happens at collection, not
-at display:
+Traffic data is operational data. Embertop sanitizes each event before it is
+emitted:
 
 - Client IP addresses are never emitted.
 - Query strings are dropped.
@@ -228,6 +233,12 @@ at display:
 - The collector binds to localhost by default and requires a token otherwise.
 - Upstream credentials stay server-side; the web proxy re-sanitizes anything
   it receives from a custom SSE source.
+
+This does not rewrite the source log. `EMBERTOP_INCLUDE_PATHS=false` (or
+`--hide-paths`) changes the path in emitted events, not a line Nginx already
+wrote to disk. Use the privacy-minimized source log in the
+[integration guide](docs/INTEGRATION.md) when you do not want IP addresses,
+referrers, or query strings in Embertop's own access log.
 
 Read [SECURITY.md](SECURITY.md) before any public deployment.
 

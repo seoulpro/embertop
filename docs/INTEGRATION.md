@@ -47,20 +47,31 @@ Missing values use the local operating-system measurement.
 
 ## Connect access logs
 
-Nginx combined logs work without changes. Appending request time in seconds
-adds latency information:
+Embertop reads Nginx and structured JSON access logs. The recommended Nginx
+format minimizes what Embertop's source log records:
 
 ```nginx
-log_format embertop '$remote_addr - $remote_user [$time_local] '
-  '"$request" $status $body_bytes_sent '
-  '"$http_referer" "$http_user_agent" $request_time';
+log_format embertop '- - - [$time_local] '
+  '"$request_method $uri $server_protocol" $status $body_bytes_sent '
+  '"-" "$http_user_agent" $request_time';
+
+access_log /var/log/nginx/embertop-access.log embertop;
 ```
 
-The collector reads the source line, but its event schema has no IP field. It
-also removes the query string and redacts common identifier-shaped path
-segments immediately.
+This dedicated log does not write a client IP, referrer, or query string.
+`$uri` is Nginx's normalized current path without query arguments. The path and
+User-Agent still remain in the source log; Embertop uses the latter to reduce a
+request to a high-level human, crawler, or unknown classification.
 
-Give the collector read-only access to logs. Do not grant write permission.
+Ordinary combined logs remain supported, but they can retain client IPs,
+referrers, and full request lines with query strings on disk before Embertop
+reads them. Embertop removes or masks those fields in the event it emits; it
+does not rewrite an existing source log.
+
+Give the collector read-only access to the log, restrict who else can read it,
+and keep retention no longer than your operating needs. Do not grant the
+collector write permission. A ready-to-adapt snippet is included at
+`deploy/nginx-access-log.example.conf`.
 
 ## Reverse-proxy SSE
 
@@ -80,6 +91,25 @@ location /internal/embertop-stream {
 
 How environment variables are inserted into Nginx configuration depends on
 your deployment system. Never commit the real token.
+
+## Check a running deployment
+
+The following commands use common unit names; substitute the names used by your
+installation:
+
+```bash
+sudo systemctl status embertop-collector embertop-web
+sudo journalctl -f -u embertop-collector -u embertop-web
+```
+
+Validate log access and parsing without starting the UI:
+
+```bash
+embertop doctor --log /var/log/nginx/embertop-access.log
+```
+
+`doctor` reports the Node.js version, log readability, local metrics or remote
+stream reachability, and collector bind safety.
 
 ## Provide SSE directly
 
@@ -124,6 +154,8 @@ browser.
 
 1. Confirm that backoffice authentication covers the web route.
 2. Confirm that collector tokens never appear in browser developer tools.
-3. Test sample paths containing queries, numeric IDs, UUIDs, and long tokens.
-4. Confirm that `/api/stream` is not cached by a CDN.
-5. Confirm that web and terminal clients reconnect after an interruption.
+3. Confirm that the source log has the intended fields, permissions, rotation,
+   and retention.
+4. Test emitted paths containing queries, numeric IDs, UUIDs, and long tokens.
+5. Confirm that `/api/stream` is not cached by a CDN.
+6. Confirm that web and terminal clients reconnect after an interruption.

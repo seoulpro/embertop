@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Added a privacy-minimized Nginx source-log example that omits client IPs,
+  referrers, and query arguments, and clarified the boundary between source-log
+  contents and Embertop's emitted-event redaction.
+- Made SSH preview examples bind explicitly to loopback and documented direct
+  terminal, web-tunnel, service-status, journal, and `doctor` checks.
+
 ## [0.3.0] - 2026-07-28
 
 ### Added

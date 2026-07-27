@@ -106,13 +106,14 @@ EMBERTOP_COLLECTOR_TOKEN=secret \
 embertop serve \
   --host 127.0.0.1 \
   --site example.com \
-  --log /var/log/nginx/access.log
+  --log /var/log/nginx/embertop-access.log
 ```
 
 내 컴퓨터의 터미널 하나에서:
 
 ```bash
-ssh -N -L 4318:127.0.0.1:4318 operator@example.com
+ssh -N -o ExitOnForwardFailure=yes \
+  -L 127.0.0.1:4318:127.0.0.1:4318 operator@example.com
 ```
 
 다른 터미널에서:
@@ -120,6 +121,28 @@ ssh -N -L 4318:127.0.0.1:4318 operator@example.com
 ```bash
 embertop --endpoint http://127.0.0.1:4318/stream
 ```
+
+로컬 주소를 명시하면 SSH 클라이언트 설정과 관계없이 전달 포트가 loopback에만
+열립니다. `ExitOnForwardFailure=yes`는 터널을 만들지 못했을 때 즉시
+종료합니다.
+
+서버에 Embertop과 수집기가 이미 실행 중이라면 터미널 프리뷰를 바로 열 수도
+있습니다.
+
+```bash
+ssh -t operator@example.com \
+  'EMBERTOP_LANG=ko embertop --endpoint http://127.0.0.1:4318/stream'
+```
+
+loopback에만 열린 웹 대시보드는 포트를 전달해서 확인합니다.
+
+```bash
+ssh -N -o ExitOnForwardFailure=yes \
+  -L 127.0.0.1:13000:127.0.0.1:3000 operator@example.com
+```
+
+브라우저에서 `http://127.0.0.1:13000`을 여세요. 터널은 `Ctrl+C`로
+종료합니다.
 
 수집기에는 `root` 권한이 필요하지 않습니다. 계정에 로그 파일 읽기 전용
 권한만 주면 되며, 함께 제공되는 `collector/embertop.service.example`도
@@ -139,7 +162,7 @@ embertop --endpoint http://127.0.0.1:4318/stream
 UI를 시작하지 않고 현재 설정을 확인합니다.
 
 ```bash
-embertop doctor --log /var/log/nginx/access.log
+embertop doctor --log /var/log/nginx/embertop-access.log
 EMBERTOP_TOKEN=secret embertop doctor -e https://host.example/stream
 ```
 
