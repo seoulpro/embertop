@@ -39,17 +39,31 @@ UI는 기존 백오피스 인증과 접근 제어 뒤에 둡니다. 수집기는
 
 ## 접근 로그 연결
 
-Nginx combined 형식은 그대로 사용할 수 있습니다.
+Embertop은 Nginx와 구조화된 JSON 접근 로그를 읽습니다. Nginx에서는 Embertop
+전용 원본 로그의 수집 항목을 최소화하는 다음 형식을 권장합니다.
 
 ```nginx
-log_format embertop '$remote_addr - $remote_user [$time_local] '
-  '"$request" $status $body_bytes_sent '
-  '"$http_referer" "$http_user_agent" $request_time';
+log_format embertop '- - - [$time_local] '
+  '"$request_method $uri $server_protocol" $status $body_bytes_sent '
+  '"-" "$http_user_agent" $request_time';
+
+access_log /var/log/nginx/embertop-access.log embertop;
 ```
 
-수집기는 IP가 포함된 원문을 읽지만, 파싱 결과에는 IP 필드가 존재하지
-않습니다. 쿼리 문자열도 즉시 제거됩니다. 로그 파일 읽기 권한만 부여하고 쓰기
-권한은 부여하지 마세요.
+이 전용 로그에는 클라이언트 IP·리퍼러·쿼리 문자열이 기록되지 않습니다.
+`$uri`는 쿼리 인자를 제외한 Nginx의 정규화된 현재 경로입니다. 경로와
+User-Agent는 원본 로그에 남습니다. Embertop은 User-Agent 원문을 사람·크롤러·
+미상이라는 상위 분류로 줄여서 사용합니다.
+
+기존 combined 로그도 읽을 수 있지만, Embertop이 읽기 전에 클라이언트 IP,
+리퍼러, 쿼리 문자열이 포함된 전체 요청 줄을 디스크에 남길 수 있습니다.
+Embertop은 내보내는 이벤트에서 해당 값을 제거하거나 가리며, 이미 기록된 원본
+로그를 다시 쓰지는 않습니다.
+
+수집기에는 로그 읽기 전용 권한만 부여하세요. 다른 계정의 읽기 권한도 제한하고
+운영에 필요한 기간보다 오래 보관하지 마세요. 수집기에 쓰기 권한은 필요하지
+않습니다. 바로 조정해서 쓸 수 있는 예시는
+`deploy/nginx-access-log.example.conf`에 있습니다.
 
 ## 리버스 프록시
 
@@ -70,6 +84,25 @@ location /internal/embertop-stream {
 환경 변수를 Nginx 설정에 직접 보간하는 방식은 배포 환경마다 다릅니다. 실제
 토큰은 저장소에 커밋하지 마세요.
 
+## 배포 상태 점검
+
+다음 명령은 흔히 쓰는 유닛 이름을 예로 듭니다. 실제로 설치한 이름이 다르면
+바꾸세요.
+
+```bash
+sudo systemctl status embertop-collector embertop-web
+sudo journalctl -f -u embertop-collector -u embertop-web
+```
+
+UI를 띄우지 않고 로그 접근과 파싱을 확인합니다.
+
+```bash
+embertop doctor --log /var/log/nginx/embertop-access.log
+```
+
+`doctor`는 Node.js 버전, 로그 읽기 가능 여부, 로컬 지표 또는 원격 스트림 연결,
+수집기 바인딩 안전성을 보고합니다.
+
 ## 직접 SSE 제공
 
 기존 백오피스가 이미 이벤트 스트림을 만들 수 있다면 수집기를 생략할 수
@@ -81,6 +114,8 @@ location /internal/embertop-stream {
 
 1. UI 경로에 기존 백오피스 인증이 적용되는지 확인합니다.
 2. 브라우저 개발자 도구에 수집기 토큰이 나타나지 않는지 확인합니다.
-3. 샘플 로그에 쿼리 문자열, 숫자 ID, UUID가 남지 않는지 확인합니다.
-4. `/api/stream`이 CDN에서 캐시되지 않는지 확인합니다.
-5. 연결이 끊겼을 때 UI가 `RECONNECTING`으로 바뀌는지 확인합니다.
+3. 원본 로그의 필드·권한·순환·보관 기간이 의도한 설정인지 확인합니다.
+4. 쿼리 문자열, 숫자 ID, UUID, 긴 토큰이 포함된 경로가 이벤트에서 정제되는지
+   확인합니다.
+5. `/api/stream`이 CDN에서 캐시되지 않는지 확인합니다.
+6. 연결이 끊겼을 때 UI가 `RECONNECTING`으로 바뀌는지 확인합니다.

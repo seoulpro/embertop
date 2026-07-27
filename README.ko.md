@@ -118,13 +118,14 @@ SSH 인증을 그대로 씁니다.
 **서버에서**, 로그 읽기 권한만 가진 일반 사용자로:
 
 ```bash
-embertop serve --host 127.0.0.1 --site example.com --log /var/log/nginx/access.log
+embertop serve --host 127.0.0.1 --site example.com --log /var/log/nginx/embertop-access.log
 ```
 
 **내 컴퓨터에서** 터널을 엽니다:
 
 ```bash
-ssh -N -L 4318:127.0.0.1:4318 operator@example.com
+ssh -N -o ExitOnForwardFailure=yes \
+  -L 127.0.0.1:4318:127.0.0.1:4318 operator@example.com
 ```
 
 **다른 터미널에서** 불 앞에 앉습니다:
@@ -132,6 +133,10 @@ ssh -N -L 4318:127.0.0.1:4318 operator@example.com
 ```bash
 embertop --endpoint http://127.0.0.1:4318/stream
 ```
+
+로컬 주소를 명시하면 SSH 클라이언트 설정과 관계없이 전달 포트가 loopback에만
+열립니다. `ExitOnForwardFailure=yes`는 터널을 만들지 못했을 때 즉시
+종료합니다.
 
 수집기는 `root`가 필요 없습니다. 로그 파일에 대한 읽기 전용 권한이면
 충분합니다. 함께 제공되는 systemd 유닛은 `User=embertop`, `Group=adm`를
@@ -191,8 +196,8 @@ Linux에서 검증하므로, 다른 운영체제에 배포하거나 의존성 �
 
 > [!IMPORTANT]
 > Embertop에는 자체 로그인 기능이 없습니다. 웹 대시보드는 백오피스를 이미
-> 보호하고 있는 인증 뒤에 두십시오. 방문자를 모두 익명화하더라도 요청
-> 빈도와 트래픽 패턴 자체가 운영 정보입니다.
+> 보호하고 있는 인증 뒤에 두십시오. 방문자 식별자를 제거해도 요청 빈도와
+> 트래픽 패턴 자체가 운영 정보입니다.
 
 리버스 프록시 구성, 하위 경로 배포, 기존 메트릭 API 재사용은
 [연동 가이드](docs/INTEGRATION.ko.md)를 참고하십시오.
@@ -211,8 +216,8 @@ embertop --json >> telemetry.jsonl
 
 ## 개인정보
 
-트래픽 데이터는 운영 정보이므로, 가리는 작업을 표시 단계가 아니라 수집
-단계에서 수행합니다.
+트래픽 데이터는 운영 정보입니다. Embertop은 각 이벤트를 내보내기 전에
+민감한 값을 정제합니다.
 
 - 클라이언트 IP 주소는 내보내지 않습니다.
 - 쿼리 문자열은 제거합니다.
@@ -224,6 +229,12 @@ embertop --json >> telemetry.jsonl
 - 수집기는 기본적으로 localhost에 바인딩하고, 그 밖에는 토큰을 요구합니다.
 - 업스트림 자격 증명은 서버에만 두며, 웹 프록시는 외부 SSE에서 받은 내용을
   다시 한번 정제합니다.
+
+이 과정은 원본 로그를 다시 쓰지 않습니다. `EMBERTOP_INCLUDE_PATHS=false`
+(또는 `--hide-paths`)는 내보내는 이벤트의 경로만 바꾸며, Nginx가 이미
+디스크에 기록한 줄에는 영향을 주지 않습니다. Embertop용 접근 로그에도 IP
+주소·리퍼러·쿼리 문자열을 남기고 싶지 않다면 [연동
+가이드](docs/INTEGRATION.ko.md)의 최소 수집 형식을 사용하세요.
 
 공개 배포 전에 [SECURITY.md](SECURITY.md)를 읽어 주십시오.
 

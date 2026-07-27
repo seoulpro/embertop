@@ -107,13 +107,14 @@ On the server:
 embertop serve \
   --host 127.0.0.1 \
   --site example.com \
-  --log /var/log/nginx/access.log
+  --log /var/log/nginx/embertop-access.log
 ```
 
 On your machine, in one terminal:
 
 ```bash
-ssh -N -L 4318:127.0.0.1:4318 operator@example.com
+ssh -N -o ExitOnForwardFailure=yes \
+  -L 127.0.0.1:4318:127.0.0.1:4318 operator@example.com
 ```
 
 And in another:
@@ -121,6 +122,27 @@ And in another:
 ```bash
 embertop --endpoint http://127.0.0.1:4318/stream
 ```
+
+The explicit local bind keeps the forwarded port on loopback even if the SSH
+client is configured otherwise. `ExitOnForwardFailure=yes` exits immediately
+when the tunnel cannot be established.
+
+For a quick terminal preview when Embertop and the collector are already
+running on the server:
+
+```bash
+ssh -t operator@example.com \
+  'embertop --endpoint http://127.0.0.1:4318/stream'
+```
+
+To preview a loopback-only web dashboard, forward its port:
+
+```bash
+ssh -N -o ExitOnForwardFailure=yes \
+  -L 127.0.0.1:13000:127.0.0.1:3000 operator@example.com
+```
+
+Then open `http://127.0.0.1:13000`. Stop either tunnel with `Ctrl+C`.
 
 The collector does not need `root`. Give its account read-only access to the
 log file — the bundled `collector/embertop.service.example` assumes
@@ -140,7 +162,7 @@ Additional options:
 Validate the current setup without starting the UI:
 
 ```bash
-embertop doctor --log /var/log/nginx/access.log
+embertop doctor --log /var/log/nginx/embertop-access.log
 EMBERTOP_TOKEN=secret embertop doctor -e https://host.example/stream
 ```
 

@@ -84,6 +84,21 @@ test("parses an Nginx combined log without retaining the visitor IP", () => {
   assert.equal(JSON.stringify(parsed).includes("203.0.113.42"), false);
 });
 
+test("parses the privacy-minimized Nginx log shape", () => {
+  const parsed = parseNginxLine(
+    '- - - [26/Jul/2026:12:04:03 +0900] "GET /notes/123456 HTTP/1.1" 200 482 "-" "Mozilla/5.0 Chrome/126 Safari/537.36" 0.042',
+  );
+
+  assert.ok(parsed);
+  assert.equal(parsed.method, "GET");
+  assert.equal(parsed.path, "/notes/:id");
+  assert.equal(parsed.status, 200);
+  assert.equal(parsed.durationMs, 42);
+  assert.equal(parsed.kind, "human");
+  assert.equal(parsed.at, "2026-07-26T03:04:03.000Z");
+  assert.equal("ip" in parsed, false);
+});
+
 test("parses structured JSON access logs with nested HTTP fields", () => {
   const parsed = parseJsonLine(
     JSON.stringify({
