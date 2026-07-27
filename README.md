@@ -3,6 +3,7 @@
 **Ambient observability for people who run things.**
 
 [![CI](https://github.com/seoulpro/embertop/actions/workflows/ci.yml/badge.svg)](https://github.com/seoulpro/embertop/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/embertop.svg)](https://www.npmjs.com/package/embertop)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A522.13-brightgreen.svg)](package.json)
 
@@ -21,10 +22,8 @@ Embertop brings that feeling to a machine you look after. Its name pairs
 `ember` with `top`, a nod to the terminal monitor.
 
 ```bash
-git clone https://github.com/seoulpro/embertop.git
-cd embertop
-npm ci
-npm run cli
+npm install --global embertop
+embertop
 ```
 
 ## Reading the fire
@@ -72,22 +71,22 @@ companion for wall displays and existing backoffices.
 | Web dashboard | Optional browser view of the same stream. | Behind your backoffice auth |
 
 The CLI execution path uses only Node.js built-ins and starts no background
-service. The package is not yet published to npm. For readability, later
-examples use `embertop` as if it were installed; from a checkout, replace it
-with `npm run cli --`.
+service. Install the npm package globally to use the `embertop` command in the
+examples below. From a source checkout, run `npm ci` once and replace
+`embertop` with `npm run cli --`.
 
 ## Watch a local machine
 
 ```bash
-npm run cli
+embertop
 ```
 
 With no log configured, Embertop shows system activity only. Add one or more
 readable access logs to turn newly appended requests into sparks:
 
 ```bash
-npm run cli -- --log /var/log/nginx/access.log
-npm run cli -- -l /var/log/nginx/site-a.log -l /var/log/nginx/site-b.log
+embertop --log /var/log/nginx/access.log
+embertop -l /var/log/nginx/site-a.log -l /var/log/nginx/site-b.log
 ```
 
 Nginx and JSON formats are detected automatically. Only lines written *after*

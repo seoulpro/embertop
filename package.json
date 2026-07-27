@@ -1,6 +1,6 @@
 {
   "name": "embertop",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Ambient observability for people who run things: turns live server traffic into a campfire in your terminal.",
   "license": "MIT",
   "author": "Sumin Lim <lim@limsumin.com> (https://limsumin.com)",
