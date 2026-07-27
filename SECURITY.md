@@ -45,3 +45,16 @@ UI can reveal traffic patterns even when individual visitors are anonymized.
 Never commit `.env` files or real collector configuration. Rotate
 `EMBERTOP_COLLECTOR_TOKEN`, `EMBERTOP_UPSTREAM_TOKEN`, and
 `EMBERTOP_METRICS_TOKEN` after any suspected disclosure.
+
+## Dependency audits
+
+`npm run audit:dependencies` blocks high- or critical-severity findings in
+runtime dependencies and any unrecognized high- or critical-severity finding
+in development dependencies.
+
+The policy temporarily recognizes
+[GHSA-mh99-v99m-4gvg](https://github.com/advisories/GHSA-mh99-v99m-4gvg)
+in ESLint's development-only glob stack. Embertop does not pass untrusted glob
+patterns to this tooling, and the affected packages are not installed by
+production-only installs. The exception should be removed as soon as the
+Next.js ESLint plugin tree supports a patched dependency chain.

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  EMPTY_METRICS,
   normalizeFrame,
   type TelemetryFrame,
   type VisitEvent,
@@ -12,20 +11,6 @@ import type { TrafficMix } from "@/lib/telemetry";
 
 type ConnectionState = "connecting" | "connected" | "reconnecting";
 
-const INITIAL_FRAME: TelemetryFrame = {
-  schema: 1,
-  sequence: 0,
-  at: new Date(0).toISOString(),
-  source: "live",
-  site: "your-server",
-  metrics: {
-    ...EMPTY_METRICS,
-    cpu: 18,
-    memory: 52,
-    load1: 0.42,
-  },
-  visits: [],
-};
 const CLOCK_FORMATTER = new Intl.DateTimeFormat("en-GB", {
   hour: "2-digit",
   minute: "2-digit",
@@ -34,7 +19,7 @@ const CLOCK_FORMATTER = new Intl.DateTimeFormat("en-GB", {
 });
 
 export function useTelemetry() {
-  const [frame, setFrame] = useState<TelemetryFrame>(INITIAL_FRAME);
+  const [frame, setFrame] = useState<TelemetryFrame | null>(null);
   const [connection, setConnection] =
     useState<ConnectionState>("connecting");
   const [recentVisits, setRecentVisits] = useState<VisitEvent[]>([]);
@@ -46,7 +31,6 @@ export function useTelemetry() {
     const stream = new EventSource(`${pagePath}/api/stream`);
     const seen = new Set<string>();
 
-    stream.onopen = () => setConnection("connected");
     stream.onmessage = (event) => {
       try {
         const normalized = normalizeFrame(JSON.parse(event.data));
