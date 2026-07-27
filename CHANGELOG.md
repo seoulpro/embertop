@@ -13,6 +13,8 @@ All notable changes to this project are documented here. The format follows
   contents and Embertop's emitted-event redaction.
 - Made SSH preview examples bind explicitly to loopback and documented direct
   terminal, web-tunnel, service-status, journal, and `doctor` checks.
+- Replaced fabricated first-load readings with an explicit waiting state and
+  improved muted-text contrast.
 
 ## [0.3.0] - 2026-07-28
 

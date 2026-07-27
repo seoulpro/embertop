@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { EMPTY_METRICS } from "@/lib/telemetry";
 import { FireCanvas } from "./FireCanvas";
 import {
   useCampfireAudio,
@@ -18,7 +19,7 @@ function Reading({
 }: {
   label: string;
   caption: string;
-  value: number;
+  value: number | null;
   progress: number | null;
   tone?: "flame" | "ember";
 }) {
@@ -30,15 +31,15 @@ function Reading({
           <em>{caption}</em>
         </span>
         <span className="reading-value">
-          {Math.round(value)}
-          <span className="unit">%</span>
+          {value == null ? "—" : Math.round(value)}
+          {value == null ? null : <span className="unit">%</span>}
         </span>
       </div>
       <div className={`gauge gauge-${tone}`} aria-hidden="true">
         <span
           style={{
             width: `${progress == null ? 0 : Math.max(1.5, progress)}%`,
-            opacity: progress == null ? 0.2 : 1,
+            opacity: progress == null ? 0 : 1,
           }}
         />
       </div>
@@ -180,8 +181,10 @@ export function Embertop() {
   });
   const frame = paused ? pausedSnapshot.frame : liveFrame;
   const recentVisits = paused ? pausedSnapshot.recentVisits : liveRecentVisits;
+  const metrics = frame?.metrics ?? EMPTY_METRICS;
+  const visits = frame?.visits ?? [];
 
-  useCampfireAudio(soundEnabled, frame.metrics.cpu);
+  useCampfireAudio(soundEnabled, metrics.cpu);
 
   const toggleFocus = useCallback(() => {
     setFocusMode((current) => !current);
@@ -235,8 +238,8 @@ export function Embertop() {
   return (
     <main className={`app ${focusMode ? "is-focus" : ""}`} data-paused={paused}>
       <FireCanvas
-        metrics={frame.metrics}
-        visits={frame.visits}
+        metrics={metrics}
+        visits={visits}
         paused={paused}
         reducedMotion={reducedMotion}
         layout={focusMode ? "focus" : "default"}
@@ -245,7 +248,7 @@ export function Embertop() {
       <header className="bar bar-top">
         <div className="identity">
           <span className="wordmark">embertop</span>
-          <span className="site">{frame.site}</span>
+          <span className="site">{frame?.site ?? "awaiting telemetry"}</span>
         </div>
         <div className="status">
           <span
@@ -266,14 +269,14 @@ export function Embertop() {
             <Reading
               label="CPU"
               caption="flame"
-              value={frame.metrics.cpu}
-              progress={frame.metrics.cpu}
+              value={frame?.metrics.cpu ?? null}
+              progress={frame?.metrics.cpu ?? null}
             />
             <Reading
               label="Memory"
               caption="embers"
-              value={frame.metrics.memory}
-              progress={frame.metrics.memory}
+              value={frame?.metrics.memory ?? null}
+              progress={frame?.metrics.memory ?? null}
               tone="ember"
             />
           </div>
@@ -284,15 +287,25 @@ export function Embertop() {
             <div className="bands-head">
               <h2>Last 60 seconds</h2>
               <span>
-                {frame.metrics.requestsPerMinute} requests
-                <em> · </em>
-                load {frame.metrics.load1.toFixed(2)}
+                {frame ? (
+                  <>
+                    {frame.metrics.requestsPerMinute} requests
+                    <em> · </em>
+                    load {frame.metrics.load1.toFixed(2)}
+                  </>
+                ) : (
+                  "awaiting first reading"
+                )}
               </span>
             </div>
             {traffic.total === 0 ? (
               // An idle server is the usual case; it should say so once.
               <div className="band">
-                <p className="band-keys band-quiet">No requests in the last minute</p>
+                <p className="band-keys band-quiet">
+                  {frame
+                    ? "No requests in the last minute"
+                    : "Waiting for telemetry."}
+                </p>
                 <div className="band-track" />
               </div>
             ) : (
@@ -327,7 +340,9 @@ export function Embertop() {
               <p>addresses and query strings dropped</p>
             </div>
             {recentVisits.length === 0 ? (
-              <p className="feed-empty">Waiting for the next spark.</p>
+              <p className="feed-empty">
+                {frame ? "Waiting for the next spark." : "Waiting for telemetry."}
+              </p>
             ) : (
               <ol className="feed-list">
                 {/* The list is clipped by its flex box, so it simply fills

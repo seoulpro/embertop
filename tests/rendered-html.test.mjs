@@ -137,6 +137,14 @@ test("server-renders the complete Embertop experience", async () => {
   assert.match(html, /load/);
   assert.match(html, /Requests/);
   assert.match(html, /addresses and query strings dropped/);
+  assert.match(html, /awaiting telemetry/i);
+  assert.match(html, /awaiting first reading/i);
+  assert.equal(
+    html.match(/class="reading-value">—<\/span>/g)?.length,
+    2,
+    "initial readings should be visibly unavailable",
+  );
+  assert.doesNotMatch(html, /your-server|load 0\.42/i);
   assert.match(html, /Just the fire/);
   assert.match(html, /<kbd[^>]*>M<\/kbd>/i);
   assert.match(html, /<kbd[^>]*>Space<\/kbd>/i);
@@ -170,6 +178,14 @@ test("keeps telemetry credentials server-only", async () => {
   assert.match(
     telemetryClient,
     /new EventSource\(`\$\{pagePath\}\/api\/stream`\)/,
+  );
+  assert.match(
+    telemetryClient,
+    /useState<TelemetryFrame \| null>\(null\)/,
+  );
+  assert.doesNotMatch(
+    telemetryClient,
+    /INITIAL_FRAME|stream\.onopen|cpu:\s*18|memory:\s*52/,
   );
   assert.doesNotMatch(
     `${client}\n${telemetryClient}`,
