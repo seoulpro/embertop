@@ -1,6 +1,10 @@
 # Embertop
 
-**Ambient observability for people who run things.**
+Embertop reads CPU, memory, load average, and web-server access logs on a single host and
+draws them as one continuously updating terminal view, so request traffic and system
+pressure are visible side by side without running a metrics stack.
+
+*Ambient observability for people who run things.*
 
 [![CI](https://github.com/seoulpro/embertop/actions/workflows/ci.yml/badge.svg)](https://github.com/seoulpro/embertop/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/embertop.svg)](https://www.npmjs.com/package/embertop)
@@ -257,6 +261,13 @@ npm test
 CI verifies the web build, CLI behaviour, privacy parsers, and package
 contents on every pull request. Contributions are welcome — see
 [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Related projects
+
+- [process-leash](https://github.com/seoulpro/process-leash) — limits for individual
+  process trees, where Embertop reports the host totals they contribute to.
+- [tallyburn](https://github.com/seoulpro/tallyburn) — a companion terminal monitor for
+  token usage instead of host resources.
 
 ## License
 
