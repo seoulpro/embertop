@@ -256,11 +256,14 @@ npm run dev               # web dashboard reading this machine
 npm run typecheck
 npm run lint
 npm test
+npm run benchmark:quick
 ```
 
 CI verifies the web build, CLI behaviour, privacy parsers, and package
 contents on every pull request. Contributions are welcome — see
 [CONTRIBUTING.md](CONTRIBUTING.md).
+The reproducible terminal cost harness is documented in
+[docs/PERFORMANCE.md](docs/PERFORMANCE.md).
 
 ## Related projects
 

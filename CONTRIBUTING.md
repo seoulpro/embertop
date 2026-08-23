@@ -25,10 +25,13 @@ Before opening a pull request:
 npm run typecheck
 npm run lint
 npm test
+npm run benchmark:quick
 npm run audit:dependencies
 ```
 
 `npm test` builds the web app first, so it takes a minute.
+Use `npm run benchmark` before and after terminal rendering or traffic-window
+changes, comparing results on the same machine and Node.js version.
 
 ## What we look for
 
