@@ -61,6 +61,8 @@
     "start": "node .next/standalone/server.js",
     "test": "npm run build && node --test tests/*.test.mjs",
     "test:unit": "node --test tests/collector.test.mjs tests/cli.test.mjs",
+    "benchmark": "node --expose-gc benchmark/terminal.mjs",
+    "benchmark:quick": "node --expose-gc benchmark/terminal.mjs --quick",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "audit:dependencies": "node scripts/audit-dependencies.mjs",

@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- A reproducible terminal performance harness covering animated and unchanged
+  dashboard rendering, line diffs, and long-running traffic-window updates,
+  with timing, checksum, and approximate retained-heap evidence.
+
 ## [0.3.2] - 2026-07-28
 
 ### Fixed

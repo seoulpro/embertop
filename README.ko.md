@@ -248,10 +248,13 @@ npm run dev               # 이 컴퓨터를 읽는 웹 대시보드
 npm run typecheck
 npm run lint
 npm test
+npm run benchmark:quick
 ```
 
 CI는 모든 풀 리퀘스트에서 웹 빌드, CLI 동작, 개인정보 파서, 패키지 구성을
 검증합니다. 기여를 환영합니다. [CONTRIBUTING.md](CONTRIBUTING.md)를 참고하십시오.
+재현 가능한 터미널 비용 측정 방법은
+[docs/PERFORMANCE.ko.md](docs/PERFORMANCE.ko.md)에 정리되어 있습니다.
 
 ## 라이선스
 
