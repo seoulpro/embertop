@@ -22,13 +22,15 @@ identity.
 
 ## Reporting
 
-Report problems through the contact channel at
-[limsumin.com](https://limsumin.com). Reports are handled privately.
+Report problems by email to [lim@limsumin.com](mailto:lim@limsumin.com).
+Reports are handled privately.
 
 The maintainer may edit, hide, or remove contributions that do not follow this
 document, and may block accounts for repeated or severe behaviour.
 
 ## Attribution
 
-Adapted from the [Contributor Covenant](https://www.contributor-covenant.org),
-version 2.1.
+Adapted from the [Contributor Covenant, version
+2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html),
+licensed under [CC BY
+4.0](https://creativecommons.org/licenses/by/4.0/).
