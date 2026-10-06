@@ -20,8 +20,7 @@ const CLOCK_FORMATTER = new Intl.DateTimeFormat("en-GB", {
 
 export function useTelemetry() {
   const [frame, setFrame] = useState<TelemetryFrame | null>(null);
-  const [connection, setConnection] =
-    useState<ConnectionState>("connecting");
+  const [connection, setConnection] = useState<ConnectionState>("connecting");
   const [recentVisits, setRecentVisits] = useState<VisitEvent[]>([]);
   const [traffic, setTraffic] = useState<TrafficMix>(emptyTrafficMix);
   const windowRef = useRef(createTrafficWindow());
@@ -35,18 +34,23 @@ export function useTelemetry() {
       try {
         const normalized = normalizeFrame(JSON.parse(event.data));
         if (!normalized) return;
-        setFrame(normalized);
-        setConnection("connected");
-        if (normalized.visits.length > 0) {
-          // The same visit can appear in consecutive frames; only tally it once.
-          const fresh = normalized.visits.filter((visit) => !seen.has(visit.id));
-          if (fresh.length > 0) {
-            for (const visit of fresh) seen.add(visit.id);
-            if (seen.size > 4_000) seen.clear();
-            windowRef.current.record(fresh);
-            // Enough to fill a tall panel; the list clips whatever does not fit.
-            setRecentVisits((current) => [...fresh, ...current].slice(0, 20));
+        // Replayed frames must not animate or count the same request twice.
+        const fresh = normalized.visits.filter((visit) => {
+          if (seen.has(visit.id)) return false;
+          seen.add(visit.id);
+          if (seen.size > 4_000) {
+            const oldest = seen.values().next().value;
+            if (oldest != null) seen.delete(oldest);
           }
+          return true;
+        });
+        setFrame({ ...normalized, visits: fresh });
+        setConnection("connected");
+        if (fresh.length > 0) {
+          windowRef.current.record(fresh);
+          setTraffic(windowRef.current.summary());
+          // Keep a bounded, scrollable recent history.
+          setRecentVisits((current) => [...fresh, ...current].slice(0, 20));
         }
       } catch {
         // Ignore malformed events and keep the last valid frame on screen.
@@ -66,7 +70,7 @@ export function useTelemetry() {
     };
   }, []);
 
-  return { frame, connection, recentVisits, traffic };
+  return { frame, hasFrame: frame != null, connection, recentVisits, traffic };
 }
 
 export function useReducedMotion() {
@@ -95,7 +99,10 @@ export function useClock() {
     };
   }, []);
 
-  return now ? CLOCK_FORMATTER.format(now) : "--:--:--";
+  return {
+    time: now ? CLOCK_FORMATTER.format(now) : "--:--:--",
+    timestamp: now?.getTime() ?? 0,
+  };
 }
 
 export function useCampfireAudio(enabled: boolean, intensity: number) {

@@ -251,8 +251,8 @@ export function FireCanvas({
       staticSignature = "";
     };
 
-    // The canvas never changes size when panels hide, so a layout change has
-    // to ask for the hearth position to be read again.
+    // A layout change can move the hearth through CSS custom properties even
+    // without resizing, so read its position again as well as observing size.
     remeasureRef.current = resize;
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);

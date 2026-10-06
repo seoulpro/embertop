@@ -5,8 +5,8 @@ import { spawnSync } from "node:child_process";
 const SIGNIFICANT_SEVERITIES = new Set(["high", "critical"]);
 const ALLOWED_DEVELOPMENT_ADVISORIES = new Map([
   [
-    "https://github.com/advisories/GHSA-mh99-v99m-4gvg",
-    "brace-expansion in ESLint's development-only glob stack",
+    "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+    "braces in the Next.js ESLint plugin's development-only glob stack",
   ],
 ]);
 
