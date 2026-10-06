@@ -170,6 +170,11 @@ npm ci && npm run dev
 Point it at readable access logs with `EMBERTOP_LOG_PATHS`. Embertop has no
 synthetic mode: every frame it draws comes from a live sampler or stream.
 
+In the browser, `f` switches to just the fire, `m` toggles sound, and `space`
+pauses the fire and all readings together. Collection continues while paused;
+resume to see the latest readings. `h` opens the fire guide, and `Esc` closes
+the guide or restores the readings. The request feed can filter 4xx/5xx responses.
+
 ### Running it for real
 
 The build produces a **self-contained `.next/standalone` directory**, including

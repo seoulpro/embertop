@@ -8,9 +8,32 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Web request filters for 4xx/5xx responses, a scrollable recent request feed,
+  and an optional guide to the fire colours and keyboard controls (`H`).
+- `Esc` restores the web readings from focus mode or closes the fire guide.
 - A reproducible terminal performance harness covering animated and unchanged
   dashboard rendering, line diffs, and long-running traffic-window updates,
   with timing, checksum, and approximate retained-heap evidence.
+
+### Changed
+
+- Increased web reading contrast and hierarchy, kept server names visible on
+  phones, and made controls reachable on narrow and short screens.
+- The fire fills the space beside the readings and expands in focus mode,
+  keeping particles anchored to the hearth as the available space changes.
+- Updated Next.js and its ESLint configuration to 16.3.8 and the sharp override
+  to 0.35.4, with audited transitive dependencies refreshed.
+- Replaced the resolved development audit exception with a documented review
+  of the unpatched braces advisory in the Next.js ESLint plugin.
+
+### Fixed
+
+- Pausing the web view freezes the fire, metrics, traffic mix and request ages
+  together while collection continues in the background.
+- Replayed SSE requests no longer produce duplicate sparks, and the observed
+  traffic mix updates as soon as a new request arrives.
+- Screen wake lock is requested again when a previously enabled tab becomes
+  visible after the browser releases its lock.
 
 ## [0.3.2] - 2026-07-28
 

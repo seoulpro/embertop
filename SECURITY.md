@@ -53,8 +53,11 @@ runtime dependencies and any unrecognized high- or critical-severity finding
 in development dependencies.
 
 The policy temporarily recognizes
-[GHSA-mh99-v99m-4gvg](https://github.com/advisories/GHSA-mh99-v99m-4gvg)
-in ESLint's development-only glob stack. Embertop does not pass untrusted glob
-patterns to this tooling, and the affected packages are not installed by
-production-only installs. The exception should be removed as soon as the
-Next.js ESLint plugin tree supports a patched dependency chain.
+[GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)
+in the Next.js ESLint plugin's development-only glob stack. The advisory affects
+`braces` through 3.0.3 and has no patched release as of October 6, 2026. The
+plugin uses this stack for repository root patterns; this project's ESLint
+configuration uses the default working directory and accepts no external
+patterns. The affected packages are absent from production-only installs.
+Runtime findings remain blocked without exceptions. Remove this development
+exception when the plugin supports a patched dependency chain.
